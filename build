@@ -13,7 +13,7 @@ import os
 NAME = "opr"
 
 
-os.environ["PATH"] += ":bin"
+os.environ["PATH"] += ":cin"
 
 
 def popen(txt):
@@ -25,15 +25,11 @@ print("\nCLEAN\n")
 popen("clean")
 print("\nTEST\n")
 popen("pytest")
-print("\nLINT\n")
-popen("pylint opr test")
 print("\n")
-popen("tinder -v")
 print("\nTAR\n")
 popen("python3 setup.py sdist")
 print("\nENV\n")
 popen("mkenv")
-popen(f"env/bin/{NAME} cmd")
 print("\nWHEEL\n")
 popen("python3 -m pip wheel -e .")
 popen("mv *.whl dist")

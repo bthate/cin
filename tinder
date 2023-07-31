@@ -4,7 +4,7 @@
 # pylint: disable=C,I,R,E0611,I1101,W0401,W0614
 
 
-"self created clients"
+"created clients"
 
 
 import os
@@ -102,7 +102,7 @@ def consume(evts):
     for evt in evts:
         res.append(evt.wait())
         if not evt.result:
-            print(f"no result {evt}")
+            print(f"no result for {evt.cmd}")
         fixed.append(evt)
     for fff in fixed:
         try:
