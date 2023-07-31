@@ -8,9 +8,10 @@
 
 
 import os
+import sys
 
 
-NAME = os.getcwd()
+NAME = "kamer"
 
 
 os.environ["PATH"] += ":cin"
@@ -19,6 +20,8 @@ os.environ["PATH"] += ":cin"
 def popen(txt):
     for line in os.popen(txt).readlines():
         print(line.strip())
+
+
 
 
 if not os.path.exists("dist"):
