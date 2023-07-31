@@ -14,7 +14,11 @@ import sys
 NAME = "kamer"
 
 
-os.environ["PATH"] += ":cin"
+path = os.path.expanduser("~/cin")
+
+
+
+os.environ["PATH"] += f":{path}"
 
 
 def popen(txt):
