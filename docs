@@ -11,7 +11,7 @@ import sys
 
 curdir = os.getcwd()
 
-os.environ["PATH"] = ":cin" + os.environ["PATH"]
+os.environ["PATH"] = ":.:cin" + os.environ["PATH"]
 
 
 def popen(txt):
