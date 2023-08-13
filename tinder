@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # This file is placed in the Public Domain.
 #
-# pylint: disable=C,I,R,E0611,I1101,W0401,W0614
+# pylint: disable=C0115,C0116,C0413,E0401,R0903
 
 
 "created clients"
@@ -20,18 +20,19 @@ import _thread
 sys.path.insert(0, os.getcwd())
 
 
-from opr.bus     import Bus
-from opr.command import Command, scan
-from opr.error   import Error
-from opr.object  import Object
-from opr.parser  import parse
+from opr.listens import Bus
+from opr.command import Commands
+from opr.errored import Errors
+from opr.objects import Object
+from opr.objfunc import parse
 from opr.reactor import Reactor
-from opr.run     import Cfg
-from opr.thread  import launch
-from opr.utils   import laps
+from opr.runtime import Cfg, scan
+from opr.storage import Storage
+from opr.threads import launch
+from opr.utility import laps
 
 
-import opr.modules as modules
+from opr import modules
 
 
 DATE = time.ctime(time.time()).replace("  ", " ")
@@ -42,7 +43,9 @@ Cfg.debug = True
 Cfg.name = "tinder"
 Cfg.silent = False
 Cfg.skip = ["debug",]
-Cfg.workdir = ".test"
+
+
+Storage.workdir = ".test"
 
 
 paylock = _thread.allocate_lock()
@@ -88,7 +91,7 @@ class CLI(Reactor):
     def __init__(self):
         Reactor.__init__(self)
         Bus.add(self)
-        self.register("event", Command.handle)
+        self.register("event", Commands.handle)
 
     def raw(self, txt):
         with outlock:
@@ -113,7 +116,7 @@ def consume(evts):
 
 
 def payload(clt) -> None:
-    cmds = list(Command.cmds.keys())
+    cmds = list(Commands.cmds.keys())
     random.shuffle(cmds)
     with paylock:
         nmr = 0
@@ -128,12 +131,12 @@ def payload(clt) -> None:
 
 def waiter() -> None:
     got = []
-    for ex in Error.errors:
+    for ex in Errors.errors:
         if not Cfg.silent:
             traceback.print_exception(type(ex), ex, ex.__traceback__)
         got.append(ex)
     for exc in got:
-        Error.errors.remove(exc)
+        Errors.errors.remove(exc)
 
 
 def wrap(func) -> None:
@@ -156,13 +159,13 @@ def main() -> None:
     if os.path.exists(Cfg.workdir):
         shutil.rmtree(Cfg.workdir)
     parse(Cfg, " ".join(sys.argv[1:]))
+    scan(modules, {}, False, True)
     if "v" in Cfg.opts:
-        Error.verbose = True
-        Error.raw = print
-    scan(modules, Cfg.mod, doall=True)
+        Errors.verbose = True
+        Errors.raw = print
     nrs = Cfg.index or 1
     cli = CLI()
-    cli.start()
+    #launch(cli.loop)
     waiters = []
     for _nr in range(nrs):
         waiters.append(launch(payload, cli, name=_nr))
