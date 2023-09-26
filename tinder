@@ -20,21 +20,25 @@ import _thread
 sys.path.insert(0, os.getcwd())
 
 
-from opr.brokers import Broker
-from opr.clients import Client, command, mods, parse
-from opr.objects import Object
-from opr.runtime import Cfg, scan, wrap
-from opr.storage import Storage
-from opr.threads import laps, launch
+from zelf.broker  import Broker
+from zelf.client  import Client
+from zelf.command import Commands, command
+from zelf.default import Default
+from zelf.object  import Object, keys
+from zelf.parse   import parse
+from zelf.store   import Storage
+from zelf.thread  import launch
+from zelf.utils   import laps, mods, spl
 
 
-from opr import modules
+from zelf import modules
 
 
 DATE = time.ctime(time.time()).replace("  ", " ")
 STARTTIME = time.time()
 
 
+Cfg = Default()
 Cfg.debug = True
 Cfg.mod = ",".join(mods(modules.__path__[0]))
 Cfg.name = "tinder"
@@ -85,10 +89,6 @@ param.thr = [""]
 
 class CLI(Client):
 
-    def __init__(self):
-        Client.__init__(self)
-        Broker.add(self)
-
     def raw(self, txt):
         with outlock:
             if txt and "v" in Cfg.opts:
@@ -112,7 +112,7 @@ def consume(evts):
 
 
 def payload(clt) -> None:
-    cmds = list(Client.cmds.keys())
+    cmds = list(keys(Commands.cmds))
     random.shuffle(cmds)
     with paylock:
         nmr = 0
@@ -123,6 +123,57 @@ def payload(clt) -> None:
                 events.append(evt)
                 nmr += 1
         return nmr
+
+
+def scan(pkg, modnames="", initer=False, dowait=False) -> []:
+    if not pkg:
+        return []
+    inited = []
+    scanned = []
+    threads = []
+    for modname in spl(modnames):
+        module = getattr(pkg, modname, None)
+        if not module:
+            continue
+        scanned.append(modname)
+        Commands.scan(module)
+        Storage.scan(module)
+        if initer:
+            try:
+                module.init
+            except AttributeError:
+                continue
+            inited.append(modname)
+            threads.append(launch(module.init, name=f"init {modname}"))
+    if dowait:
+        for thread in threads:
+            thread.join()
+    return inited
+
+
+def wrap(func) -> None:
+    if "d" in Cfg.opts:
+        debug("terminal disabled!")
+        return
+    old = None
+    try:
+        old = termios.tcgetattr(sys.stdin.fileno())
+    except termios.error:
+        pass
+    try:
+        func()
+    except (EOFError, KeyboardInterrupt):
+        print("")
+        sys.stdout.flush()
+    finally:
+        if old:
+            termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, old)
+    for exc in errors:
+        traceback.print_exception(
+                                  type(exc),
+                                  exc,
+                                  exc.__traceback__
+                                 )
 
 
 def main() -> None:
@@ -137,7 +188,7 @@ def main() -> None:
     #launch(cli.loop)
     waiters = []
     for _nr in range(nrs):
-        waiters.append(launch(payload, cli, name=_nr))
+        waiters.append(launch(payload, cli, name=f"payload {_nr}"))
     result = 1
     for wtr in waiters:
         result += wtr.join() or 1

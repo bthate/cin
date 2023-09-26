@@ -11,26 +11,16 @@ import os
 import sys
 
 
-NAME = "kamer"
-
-
-path = os.path.expanduser("~/cin")
-
-
-
-os.environ["PATH"] += f":{path}"
+NAME = "zelf"
 
 
 def popen(txt):
     for line in os.popen(txt).readlines():
         print(line.strip())
+        sys.stdout.flush()
 
 
-
-
-if not os.path.exists("dist"):
-    popen("build")
-
-
+popen("bin/clean -f")
+popen("bin/builder")
 popen("python3 -mvirtualenv --system-site-packages env")
 popen("env/bin/pip3 install %s -f dist --upgrade" % NAME)
