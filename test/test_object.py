@@ -9,9 +9,8 @@
 import unittest
 
 
-from opr.objects import Object, items, keys, update, values
-from opr.objfunc import prt
-from opr.storage import kind
+from zelf.object import Object, items, keys, update, values
+from zelf.method  import fmt, fqn
 
 
 VALIDJSON = '{"test": "bla"}'
@@ -41,6 +40,7 @@ attrs2 = (
           '__dir__',
           '__doc__',
           '__eq__',
+          '__fnm__',
           '__format__',
           '__ge__',
           '__getattribute__',
@@ -55,7 +55,6 @@ attrs2 = (
           '__module__',
           '__ne__',
           '__new__',
-          '__oid__',
           '__reduce__',
           '__reduce_ex__',
           '__repr__',
@@ -126,10 +125,10 @@ class TestObject(unittest.TestCase):
         self.assertEqual(len(obj), 0)
 
     def test_module(self):
-        self.assertEqual(Object().__module__, "opr.objects")
+        self.assertEqual(Object().__module__, "zelf.object")
 
-    def test_kind(self):
-        self.assertEqual(kind(Object()), "opr.objects.Object")
+    def test_fqn(self):
+        self.assertEqual(fqn(Object()), "zelf.object.Object")
 
     def test_repr(self):
         self.assertTrue(
@@ -149,9 +148,9 @@ class TestObject(unittest.TestCase):
         obj = Object()
         self.assertEqual(str(obj), "{}")
 
-    def test_prt(self):
+    def test_fmt(self):
         obj = Object()
-        self.assertEqual(prt(obj), "")
+        self.assertEqual(fmt(obj), "")
 
     def test_getattr(self):
         obj = Object()

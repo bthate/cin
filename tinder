@@ -24,6 +24,7 @@ from zelf.broker  import Broker
 from zelf.client  import Client
 from zelf.command import Commands, command
 from zelf.default import Default
+from zelf.error   import Errors
 from zelf.object  import Object, keys
 from zelf.parse   import parse
 from zelf.store   import Storage
@@ -100,6 +101,7 @@ def consume(evts):
     res = []
     for evt in evts:
         res.append(evt.wait())
+        print(evt)
         if not evt.result:
             print(f"no result for {evt.cmd}")
         fixed.append(evt)
@@ -111,6 +113,7 @@ def consume(evts):
     return res
 
 
+
 def payload(clt) -> None:
     cmds = list(keys(Commands.cmds))
     random.shuffle(cmds)
@@ -119,7 +122,7 @@ def payload(clt) -> None:
         for cmnd in cmds:
             for ex in getattr(param, cmnd, [""]):
                 evt = clt.event(cmnd + " " + ex)
-                command(evt)
+                clt.put(evt)
                 events.append(evt)
                 nmr += 1
         return nmr
@@ -168,7 +171,9 @@ def wrap(func) -> None:
     finally:
         if old:
             termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, old)
-    for exc in errors:
+    if not Errors.errors:
+        print("no errors")
+    for exc in Errors.errors:
         traceback.print_exception(
                                   type(exc),
                                   exc,
@@ -185,13 +190,14 @@ def main() -> None:
         Client.output = print
     nrs = Cfg.index or 1
     cli = CLI()
-    #launch(cli.loop)
+    cli.start()
     waiters = []
     for _nr in range(nrs):
         waiters.append(launch(payload, cli, name=f"payload {_nr}"))
     result = 1
     for wtr in waiters:
         result += wtr.join() or 1
+    print(result)
     consume(events)
     endtime = time.time()
     lap = laps(endtime - STARTTIME)

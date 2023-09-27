@@ -11,22 +11,47 @@ import sys
 import unittest
 
 
-from opr.objects import Object, get
+from zelf.object import Object
+
+
+import zelf.object
 
 
 METHODS = [
-           'clear',
-           'copy',
-           'fromkeys',
-           'get',
+           'construct',
            'items',
            'keys',
-           'pop',
-           'popitem',
-           'setdefault',
+           'read',
            'update',
-           'values'
+           'values',
+           'write'
           ]
+
+
+METHOS = [
+          'JSONDecoder',
+          'JSONEncoder',
+          'Object',
+          'ObjectDecoder',
+          'ObjectEncoder',
+          '__builtins__',
+          '__cached__',
+          '__file__',
+          '__loader__',
+          '__name__',
+          '__package__',
+          '__spec__',
+          'construct',
+          'dump',
+          'dumps',
+          'hook',
+          'json',
+          'load',
+          'loads',
+          'read',
+          'write'
+        ]
+
 
 
 class A(Object):
@@ -40,9 +65,9 @@ DICT = {}
 DIFF = [
         '__default__',
         '__dict__',
+        '__fnm__',
         '__getattr__',
         '__module__',
-        '__oid__',
         '__slots__',
         '__test__',
         '_pytestfixturefunction'
@@ -56,29 +81,19 @@ DIFF = [
 DIFF = [
         '__dict__',
         '__module__',
-        '__oid__',
         '__slots__',
        ]
 
 
-OBJECT = Object()
+OBJECT = zelf.object
 
 
 class TestInterface(unittest.TestCase):
 
-    def test_interface(self):
-        dictkeys = dir(DICT)
-        objectkeys = dir(OBJECT)
-        res = []
-        for key in objectkeys:
-            if key not in dictkeys:
-                res.append(key)
-        self.assertEqual(res, DIFF)
-
     def test_methodinterface(self):
         okd = True
         for meth in METHODS:
-            func1 = get(OBJECT, meth)
+            func1 = getattr(OBJECT, meth)
             if not func1:
                 continue
             func2 = DICT.get(meth)

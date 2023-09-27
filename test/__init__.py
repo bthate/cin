@@ -4,8 +4,9 @@
 "test imports"
 
 
-import sys
+import os, sys
 
 
-NAME = __name__.split('.', maxsplit=1)[0]
-sys.path.insert(0, NAME)
+NAME = "zelf"
+sys.path.insert(0, os.path.join(os.getcwd(), "..", NAME))
+print(sys.path)
